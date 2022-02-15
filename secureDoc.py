@@ -1,5 +1,7 @@
 import sys
 import os
+import time
+from pynput.keyboard import Key, Controller
 from win32 import win32gui
 
 
@@ -30,6 +32,35 @@ def settingPWD() :
     #
     # while(True):
     #     win32gui.EnumChildWindows(titleHwnd, all_ok, None)
+
+    # Type pwd -> Tab -> Confirm pwd -> Tab -> Enter
+    keyboard = Controller()
+    # passWordKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+    # time.sleep(5)
+    # print("Waiting for 5 secnods")
+    # for i in range(len(passWordKeys)) :
+    #     keyboard.press(passWordKeys[i])
+    #     keyboard.release(passWordKeys[i])
+    
+    time.sleep(5)
+    print("Waiting for 5 secnods")
+
+    keyboard.type("123456789")
+
+    keyboard.press(Key.tab)
+    time.sleep(1)
+    keyboard.release(Key.tab)
+
+    keyboard.type("123456789")
+    keyboard.press(Key.tab)
+    time.sleep(1)
+    keyboard.release(Key.tab)
+
+    keyboard.press(Key.enter)
+    time.sleep(1)
+    keyboard.release(Key.enter)
+
+
 
 def main() :
     #installSecureDocTool()
