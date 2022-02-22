@@ -1,5 +1,8 @@
+from cgitb import handler
+from pickle import TRUE
 import sys
 import os
+import win32con
 import pyautogui
 import pydirectinput
 import time
@@ -10,11 +13,12 @@ from pynput.keyboard import Key, Controller
 from win32 import win32gui
 from ctypes import *
 
-
+start = time.time()
 user32 = windll.user32
 kernel32 = windll.kernel32
 
-# Global variable 
+# Global variable.
+titleHwnd = 0
 commandList = []
 delayMsList = []
 delay = 0.01
@@ -171,7 +175,7 @@ class key:
 
 #--- Keyboard Control Functions ---#
 
-# Category variables
+# Category variables.
 letters = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"
 shiftsymbols = "~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?"
 
@@ -263,33 +267,89 @@ def installSecureDocTool() :
     
     # Waiting for tool appear
 
+def windowList():
+    """
+    Windows list
+    """
+    def win_enum_callback(hwnd, results):
+        if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd) != '':
+            results.append(hwnd)
+
+    handles = []
+    win32gui.EnumWindows(win_enum_callback, handles)
+    # Print all window on system
+    print('\n'.join(['%d\t%s' % (h, win32gui.GetWindowText(h)) for h in handles]))
+
+
+def windowTopByHandle():
+    def win_enum_callback(hwnd, results):
+        if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd) != '':
+            results.append(hwnd)
+
+    handles = []
+    win32gui.EnumWindows(win_enum_callback, handles)
+
+    for h in handles :
+        if win32gui.GetWindowText(h) == "Calculator" :
+        # if win32gui.GetWindowText(h) == "SecureDoc: Set Device Primary Owner Credentials" :
+            print('\n'.join(['%d\t%s' % (h, win32gui.GetWindowText(h)) for h in handles]))
+            titleHwnd = h
+    # print(handles)
+    print(titleHwnd)
+
+    # Get hwnd for SecureDoc x64    
+    # titleHwnd  = win32gui.FindWindow("Qt5QWindowIcon", "SecureDoc: Set Device Primary Owner Credentials")
+    # print(titleHwnd)
+
+    """
+    Setting SecureDoc on top
+    """
+    
+    # Show tool window
+    win32gui.SetWindowPos(titleHwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE | win32con.SWP_NOACTIVATE| win32con.SWP_NOOWNERZORDER| win32con.SWP_SHOWWINDOW)               
+    time.sleep(1)
+    win32gui.ShowWindow(titleHwnd, win32con.SW_SHOW)
+    
+
+def moveSecureDocOnTop(titleHwnd) :
+    # Print all window on system
+    # windowList()
+
+    # Setting tool on top
+    windowTopByHandle() 
+
 def getHwndForSecureDoc() :
-    # Get hwnd for SecureDoc x64
-    titleHwnd = 0
+    # Get hwnd for SecureDoc x64    
     titleHwnd  = win32gui.FindWindow("Qt5QWindowIcon", "SecureDoc: Set Device Primary Owner Credentials")
     print(titleHwnd)
-    print(sys.platform)
-    return titleHwnd
+    
+    # Move Window on top
+    moveSecureDocOnTop(titleHwnd)
 
-#     # Trigger button events
-#     child = []   
-#     def all_ok(hwnd, parm) :
-#         child.append(hwnd)
-#         ClassName = win32gui.GetClassName(hwnd)
-#         title = win32gui.GetWindowText(hwnd)
-#         print("title : %s, class : %s, hwnd : %d" %(title, ClassName, hwnd))
+    # while(True) :
+    #     end = time.time()
+    #     titleHwnd  = win32gui.FindWindow("Qt5QWindowIcon", "SecureDoc: Set Device Primary Owner Credentials")
+    #     print(titleHwnd)
+    #     print(sys.platform)
+    #     if titleHwnd != 0 :
+    #         break
+    #     elif end > 60 :
+    #         return False                        
 
+    # return titleHwnd
+
+    # Trigger button events
+    child = []   
+    def all_ok(hwnd, parm) :
+        child.append(hwnd)
+        ClassName = win32gui.GetClassName(hwnd)
+        title = win32gui.GetWindowText(hwnd)
+        print("title : %s, class : %s, hwnd : %d" %(title, ClassName, hwnd))
+    
+    win32gui.EnumChildWindows(titleHwnd, all_ok, None)
      
 
 def settingPWD() : 
-    #############################################
-    # # Get tool path
-    # SEDPath = r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs\SecureDoc Disk Encryption"
-    
-    # #  SecureDoc_64.exe
-    # os.startfile(SEDPath)
-    #############################################
-
     # Type pwd -> Tab -> Confirm pwd -> Tab -> Enter
     keyboard = Controller()
     # passWordKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9']      
@@ -336,6 +396,7 @@ def settingPWD() :
     time.sleep(1)
     keyboard.release(Key.enter)
 
+
 def parserJsonFile(filePath):
     with open(filePath, newline="") as f:         
         # Load json file
@@ -352,6 +413,7 @@ def parserJsonFile(filePath):
                 delayMs = int(delayMs)/1000
                 print("delay ms is : %d" %(delayMs))
                 delayMsList.append(delayMs)
+
 
 def sendCommand(remoteIP):    
     uri = "wss://%s/api/ws?stream=0" %(remoteIP)
@@ -394,20 +456,42 @@ def sendCommand(remoteIP):
     # Close websocket
     ws.close()
 
-def issueEventOnWebUI() :
-    filePath = u"./secureDocPWD.json"
+def issueEventByWebUI() :
+    filePath = r"./secureDocPWD.json"
     parserJsonFile(filePath)
     remoteIP = "192.168.54.64"
     sendCommand(remoteIP)
 
 def main() :
-    installSecureDocTool()
-    res = getHwndForSecureDoc()
-    if res == 0 :
-        return False
-    settingPWD()
-    issueEventOnWebUI()
+    # installSecureDocTool()
+    # getHwndForSecureDoc()
+    
+
+    windowTopByHandle()
+
+    ###########################################
+    ''''Testing Function'''
+    time.sleep(3)
+    print("Sleep 3 seconds")
+    keyboard = Controller()
+    passWordKeys = ['1', '2', '3', '4', '5', '6', '7', '8']      
+    for i in range(len(passWordKeys)) :
+        keyboard.press(passWordKeys[i])
+        time.sleep(0.2)
+        keyboard.release(passWordKeys[i])
+        time.sleep(0.2)
+
+    ###########################################
+    # time.sleep(120)
+    # print("Waiting for 120 seconds")
+    # res = getHwndForSecureDoc()
+    # if res == 0 :
+    #     return False
+
+    # Issue event by web UI
+    # issueEventByWebUI()
 
 
 if __name__ == "__main__" :
     main()
+    os.system("pause")
