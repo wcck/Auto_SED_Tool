@@ -2,6 +2,7 @@ from cgitb import handler
 from pickle import TRUE
 import sys
 import os
+from telnetlib import SE
 import win32con
 import win32api
 import pyautogui
@@ -20,6 +21,7 @@ kernel32 = windll.kernel32
 
 # Global variable.
 titleHwnd = 0
+retry  = 0
 commandList = []
 delayMsList = []
 delay = 0.01
@@ -259,14 +261,18 @@ def typestr(sentence):
 
 def installSecureDocTool() :
     # Get tool path
-    SEDPath = r"C:\Users\admin\Desktop\SED_Offline_8.6_SR1\SecureDoc_64.exe"
+    SEDPath = os.path.join(os.path.expandvars("%userprofile%"), "Desktop", "SED_Offline_8.6_SR1", "SecureDoc_64.exe")
+    print(SEDPath)
     
     # Install SecureDoc_64.exe
     os.startfile(SEDPath)
-
+    # return True
+    
     # Press YES by user
     
     # Waiting for tool appear
+    print("Waiting for 60 seconds")
+    time.sleep(60)
 
 def leftClick(left, top, right, bottom, hwnd):
     # Calculate coordinate for event button
@@ -281,24 +287,18 @@ def leftClick(left, top, right, bottom, hwnd):
     pyautogui.click(x, y)  
     print('Left Click')
 
-    # # Left Click  
-    # win32api.SendMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON)
-    # time.sleep(0.2)
-    # win32api.SendMessage(hwnd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON)
-    # print('Left Click')
+# def windowList():
+#     """
+#     Windows list
+#     """
+#     def win_enum_callback(hwnd, results):
+#         if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd) != '':
+#             results.append(hwnd)
 
-def windowList():
-    """
-    Windows list
-    """
-    def win_enum_callback(hwnd, results):
-        if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd) != '':
-            results.append(hwnd)
-
-    handles = []
-    win32gui.EnumWindows(win_enum_callback, handles)
-    # Print all window on system
-    print('\n'.join(['%d\t%s' % (h, win32gui.GetWindowText(h)) for h in handles]))
+#     handles = []
+#     win32gui.EnumWindows(win_enum_callback, handles)
+#     # Print all window on system
+#     print('\n'.join(['%d\t%s' % (h, win32gui.GetWindowText(h)) for h in handles]))
 
 
 def windowTopByHandle():
@@ -310,21 +310,20 @@ def windowTopByHandle():
     win32gui.EnumWindows(win_enum_callback, handles)
 
     for h in handles :
-        if win32gui.GetWindowText(h) == "Calculator" :
-        # if win32gui.GetWindowText(h) == "SecureDoc: Set Device Primary Owner Credentials" :
+        # if win32gui.GetWindowText(h) == "Calculator" :
+        if win32gui.GetWindowText(h) == "SecureDoc: Set Device Primary Owner Credentials" :
             print('\n'.join(['%d\t%s' % (h, win32gui.GetWindowText(h)) for h in handles]))
             titleHwnd = h
-    # print(handles)
+    print(handles)
     print(titleHwnd)
-
-    # Get hwnd for SecureDoc x64    
-    # titleHwnd  = win32gui.FindWindow("Qt5QWindowIcon", "SecureDoc: Set Device Primary Owner Credentials")
-    # print(titleHwnd)
     
-    # On top window
-    # win32gui.SetWindowPos(titleHwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE | win32con.SWP_NOACTIVATE| win32con.SWP_NOOWNERZORDER| win32con.SWP_SHOWWINDOW)               
-    # time.sleep(1)
-    # win32gui.ShowWindow(titleHwnd, win32con.SW_SHOW)
+    # Prevent secureDoc didn't appear
+    if titleHwnd == 0 :                
+        print("Waiting for 60 seconds")
+        time.sleep(60)        
+        windowTopByHandle()    
+
+    # Set fore ground secureDoc tool
     win32gui.SetForegroundWindow(titleHwnd)
     
     # Click title to confirm in tool
@@ -334,42 +333,42 @@ def windowTopByHandle():
     # Click left event by mouse
     leftClick(left, top, right, bottom, titleHwnd)
 
-def moveSecureDocOnTop(titleHwnd) :
-    # Print all window on system
-    # windowList()
+# def moveSecureDocOnTop(titleHwnd) :
+#     # Print all window on system
+#     # windowList()
 
-    # Setting tool on top
-    windowTopByHandle() 
+#     # Setting tool on top
+#     windowTopByHandle() 
 
-def getHwndForSecureDoc() :
-    # Get hwnd for SecureDoc x64    
-    titleHwnd  = win32gui.FindWindow("Qt5QWindowIcon", "SecureDoc: Set Device Primary Owner Credentials")
-    print(titleHwnd)
+# def getHwndForSecureDoc() :
+#     # Get hwnd for SecureDoc x64    
+#     titleHwnd  = win32gui.FindWindow("Qt5QWindowIcon", "SecureDoc: Set Device Primary Owner Credentials")
+#     print(titleHwnd)
     
-    # Move Window on top
-    moveSecureDocOnTop(titleHwnd)
+#     # Move Window on top
+#     moveSecureDocOnTop(titleHwnd)
 
-    # while(True) :
-    #     end = time.time()
-    #     titleHwnd  = win32gui.FindWindow("Qt5QWindowIcon", "SecureDoc: Set Device Primary Owner Credentials")
-    #     print(titleHwnd)
-    #     print(sys.platform)
-    #     if titleHwnd != 0 :
-    #         break
-    #     elif end > 60 :
-    #         return False                        
+#     # while(True) :
+#     #     end = time.time()
+#     #     titleHwnd  = win32gui.FindWindow("Qt5QWindowIcon", "SecureDoc: Set Device Primary Owner Credentials")
+#     #     print(titleHwnd)
+#     #     print(sys.platform)
+#     #     if titleHwnd != 0 :
+#     #         break
+#     #     elif end > 60 :
+#     #         return False                        
 
-    # return titleHwnd
+#     # return titleHwnd
 
-    # Trigger button events
-    child = []   
-    def all_ok(hwnd, parm) :
-        child.append(hwnd)
-        ClassName = win32gui.GetClassName(hwnd)
-        title = win32gui.GetWindowText(hwnd)
-        print("title : %s, class : %s, hwnd : %d" %(title, ClassName, hwnd))
+#     # Trigger button events
+#     child = []   
+#     def all_ok(hwnd, parm) :
+#         child.append(hwnd)
+#         ClassName = win32gui.GetClassName(hwnd)
+#         title = win32gui.GetWindowText(hwnd)
+#         print("title : %s, class : %s, hwnd : %d" %(title, ClassName, hwnd))
     
-    win32gui.EnumChildWindows(titleHwnd, all_ok, None)
+#     win32gui.EnumChildWindows(titleHwnd, all_ok, None)
      
 
 def settingPWD() : 
@@ -384,8 +383,8 @@ def settingPWD() :
     
     
     # Waiting for secureDoc tool appear
-    time.sleep(5)
     print("Waiting for 5 secnods")
+    time.sleep(5)    
 
     passWordKeys = ['1', '2', '3', '4', '5', '6', '7', '8']      
     for i in range(len(passWordKeys)) :
@@ -479,40 +478,27 @@ def sendCommand(remoteIP):
     # Close websocket
     ws.close()
 
-def issueEventByWebUI() :
+def issueEventByWebUI(ip) :
     filePath = r"./secureDocPWD.json"
     parserJsonFile(filePath)
-    remoteIP = "192.168.54.64"
-    sendCommand(remoteIP)
+    
+    sendCommand(ip)
 
 def main() :
-    # installSecureDocTool()
-    # getHwndForSecureDoc()
-    
+    ##############################################
+    # res = os.path.join(os.path.expandvars("%userprofile%"),"Desktop")
+    # print(res)
+    ##############################################
+
+    # Install SecureDoc Tool in Desktop
+    # installSecureDocTool()        
+
+    # Show tool and Click it
     windowTopByHandle()    
-
-    ###########################################
-    ''''Testing Function'''
-    time.sleep(1)
-    print("Sleep 1 seconds")
-    keyboard = Controller()
-    passWordKeys = ['1', '2', '3', '4', '5', '6', '7', '8']      
-    for i in range(len(passWordKeys)) :
-        keyboard.press(passWordKeys[i])
-        time.sleep(0.2)
-        keyboard.release(passWordKeys[i])
-        time.sleep(0.2)
-
-    ###########################################
-
-    # time.sleep(120)
-    # print("Waiting for 120 seconds")
-    # res = getHwndForSecureDoc()
-    # if res == 0 :
-    #     return False
-
+    
     # Issue event by web UI
-    # issueEventByWebUI()
+    remoteIP = "192.168.54.64"
+    issueEventByWebUI(ip = remoteIP)
 
 
 if __name__ == "__main__" :
