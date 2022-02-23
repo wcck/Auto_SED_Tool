@@ -3,6 +3,7 @@ from pickle import TRUE
 import sys
 import os
 import win32con
+import win32api
 import pyautogui
 import pydirectinput
 import time
@@ -267,6 +268,25 @@ def installSecureDocTool() :
     
     # Waiting for tool appear
 
+def leftClick(left, top, right, bottom, hwnd):
+    # Calculate coordinate for event button
+    x = int(left+(right-left)/2)
+    y = int(top+(bottom-top)/2)         
+    print("Coordinate(%d, %d)" %(x, y))
+    
+    # Move to specific coordinate by mouse
+    pyautogui.moveTo(x, y)  
+
+    # Left click by mouse left
+    pyautogui.click(x, y)  
+    print('Left Click')
+
+    # # Left Click  
+    # win32api.SendMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON)
+    # time.sleep(0.2)
+    # win32api.SendMessage(hwnd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON)
+    # print('Left Click')
+
 def windowList():
     """
     Windows list
@@ -300,16 +320,19 @@ def windowTopByHandle():
     # Get hwnd for SecureDoc x64    
     # titleHwnd  = win32gui.FindWindow("Qt5QWindowIcon", "SecureDoc: Set Device Primary Owner Credentials")
     # print(titleHwnd)
-
-    """
-    Setting SecureDoc on top
-    """
     
-    # Show tool window
-    win32gui.SetWindowPos(titleHwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE | win32con.SWP_NOACTIVATE| win32con.SWP_NOOWNERZORDER| win32con.SWP_SHOWWINDOW)               
-    time.sleep(1)
-    win32gui.ShowWindow(titleHwnd, win32con.SW_SHOW)
+    # On top window
+    # win32gui.SetWindowPos(titleHwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE | win32con.SWP_NOACTIVATE| win32con.SWP_NOOWNERZORDER| win32con.SWP_SHOWWINDOW)               
+    # time.sleep(1)
+    # win32gui.ShowWindow(titleHwnd, win32con.SW_SHOW)
+    win32gui.SetForegroundWindow(titleHwnd)
     
+    # Click title to confirm in tool
+    left, top, right, bottom = win32gui.GetWindowRect(titleHwnd)
+    print(left, top, right, bottom)
+    
+    # Click left event by mouse
+    leftClick(left, top, right, bottom, titleHwnd)
 
 def moveSecureDocOnTop(titleHwnd) :
     # Print all window on system
@@ -466,13 +489,12 @@ def main() :
     # installSecureDocTool()
     # getHwndForSecureDoc()
     
-
-    windowTopByHandle()
+    windowTopByHandle()    
 
     ###########################################
     ''''Testing Function'''
-    time.sleep(3)
-    print("Sleep 3 seconds")
+    time.sleep(1)
+    print("Sleep 1 seconds")
     keyboard = Controller()
     passWordKeys = ['1', '2', '3', '4', '5', '6', '7', '8']      
     for i in range(len(passWordKeys)) :
@@ -482,6 +504,7 @@ def main() :
         time.sleep(0.2)
 
     ###########################################
+
     # time.sleep(120)
     # print("Waiting for 120 seconds")
     # res = getHwndForSecureDoc()
