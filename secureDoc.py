@@ -2,6 +2,7 @@ from cgitb import handler
 from pickle import TRUE
 import sys
 import os
+import logging
 from telnetlib import SE
 import win32con
 import win32api
@@ -11,6 +12,7 @@ import time
 import json
 import ssl
 import websocket
+import win32com.client
 from pynput.keyboard import Key, Controller
 from win32 import win32gui
 from ctypes import *
@@ -20,7 +22,6 @@ user32 = windll.user32
 kernel32 = windll.kernel32
 
 # Global variable.
-titleHwnd = 0
 retry  = 0
 commandList = []
 delayMsList = []
@@ -271,8 +272,8 @@ def installSecureDocTool() :
     # Press YES by user
     
     # Waiting for tool appear
-    print("Waiting for 60 seconds")
-    time.sleep(60)
+    # print("Waiting for 80 seconds")
+    # time.sleep(80)
 
 def leftClick(left, top, right, bottom, hwnd):
     # Calculate coordinate for event button
@@ -302,6 +303,7 @@ def leftClick(left, top, right, bottom, hwnd):
 
 
 def windowTopByHandle():
+    titleHwnd = 0
     def win_enum_callback(hwnd, results):
         if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd) != '':
             results.append(hwnd)
@@ -319,19 +321,24 @@ def windowTopByHandle():
     
     # Prevent secureDoc didn't appear
     if titleHwnd == 0 :                
-        print("Waiting for 60 seconds")
-        time.sleep(60)        
+        print("Waiting for 15 seconds")
+        time.sleep(15)        
         windowTopByHandle()    
-
-    # Set fore ground secureDoc tool
-    win32gui.SetForegroundWindow(titleHwnd)
-    
-    # Click title to confirm in tool
-    left, top, right, bottom = win32gui.GetWindowRect(titleHwnd)
-    print(left, top, right, bottom)
-    
-    # Click left event by mouse
-    leftClick(left, top, right, bottom, titleHwnd)
+    else :
+        # Set fore ground secureDoc tool
+        print("Waiting for 5 seconds")
+        time.sleep(5)
+        shell = win32com.client.Dispatch("WScript.Shell")
+        shell.SendKeys('%')
+        print(titleHwnd)
+        win32gui.SetForegroundWindow(titleHwnd)
+        
+        # Click title to confirm in tool
+        left, top, right, bottom = win32gui.GetWindowRect(titleHwnd)
+        print(left, top, right, bottom)
+        
+        # Click left event by mouse
+        leftClick(left, top, right, bottom, titleHwnd)
 
 # def moveSecureDocOnTop(titleHwnd) :
 #     # Print all window on system
@@ -491,7 +498,7 @@ def main() :
     ##############################################
 
     # Install SecureDoc Tool in Desktop
-    # installSecureDocTool()        
+    installSecureDocTool()        
 
     # Show tool and Click it
     windowTopByHandle()    
@@ -501,6 +508,40 @@ def main() :
     issueEventByWebUI(ip = remoteIP)
 
 
+def loggingDemo():
+    """Just demo basic usage of logging module
+    """
+    logging.info("You should see this info both in log file and cmd window");
+    logging.warning("You should see this warning both in log file and cmd window");
+    logging.error("You should see this error both in log file and cmd window");
+     
+    logging.debug("You should ONLY see this debug in log file");
+    return;
+ 
+#-------------------------------------------------------------------------------   
+def initLogging(logFilename):
+    """Init for logging
+    """
+    logging.basicConfig(
+                    level    = logging.DEBUG,
+                    format   = 'LINE %(lineno)-4d  %(levelname)-8s %(message)s',
+                    datefmt  = '%m-%d %H:%M',
+                    filename = logFilename,
+                    filemode = 'w');
+    # define a Handler which writes INFO messages or higher to the sys.stderr
+    console = logging.StreamHandler();
+    console.setLevel(logging.INFO);
+    # set a format which is simpler for console use
+    formatter = logging.Formatter('LINE %(lineno)-4d : %(levelname)-8s %(message)s');
+    # tell the handler to use this format
+    console.setFormatter(formatter);
+    logging.getLogger('').addHandler(console);
+
 if __name__ == "__main__" :
+    logFilename = r"./crifan_logging_demo.log"
+    initLogging(logFilename)
+    loggingDemo()
     main()
+    with os.popen("call secureDoc.exe > result.log 2 > &1 && type result.log") as p:
+        r = p.read()
     os.system("pause")
