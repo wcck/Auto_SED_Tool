@@ -1,0 +1,4 @@
+LINE 547   INFO     You should see this info both in log file and cmd window
+LINE 548   WARNING  You should see this warning both in log file and cmd window
+LINE 549   ERROR    You should see this error both in log file and cmd window
+LINE 551   DEBUG    You should ONLY see this debug in log file

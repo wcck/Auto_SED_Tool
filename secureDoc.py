@@ -491,11 +491,44 @@ def issueEventByWebUI(ip) :
     
     sendCommand(ip)
 
+
+# Judge sample whether support OPAL feature
+def determineOPAL(resultList, beforeEncrypt, afterEncrypt):
+    # get status val
+    val = resultList[5].split(":")[1].strip()
+    # print(val)
+    # print(resultList[5])
+    if beforeEncrypt == True :
+        if val == "0x0" :
+            print("Support OPAL")
+        else :
+            print("Don't support OPAL")
+            return False
+    elif afterEncrypt == True :
+        if val == "0x6" or val == "0x7" :
+            print("PASS")
+        else :
+            print("FAIL")
+            return False     
+
+def checkStatus(before, after):
+    # os.system('WMTCGTST_8.6.0.188.exe -i')
+
+    result = os.popen('WMTCGTST_8.6.0.188.exe -i', mode='r')
+    resultList = result.readlines()
+    if before == True:
+        determineOPAL(resultList, beforeEncrypt=True, afterEncrypt=False)
+    elif after == True:
+        determineOPAL(resultList, beforeEncrypt=False, afterEncrypt=True)
+
 def main() :
     ##############################################
     # res = os.path.join(os.path.expandvars("%userprofile%"),"Desktop")
     # print(res)
     ##############################################
+
+    # Check Status for sample
+    checkStatus(before=True, after=False)
 
     # Install SecureDoc Tool in Desktop
     installSecureDocTool()        
