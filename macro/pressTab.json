@@ -1,0 +1,28 @@
+[    
+    {
+        "event_type": "key",
+        "event": {
+            "key": "Tab",
+            "state": true
+        }
+    },
+    {
+        "event_type": "delay",
+        "event": {
+            "millis": 300
+        }
+    },
+    {
+        "event_type": "key",
+        "event": {
+            "key": "Tab",
+            "state": false
+        }
+    },
+    {
+        "event_type": "delay",
+        "event": {
+            "millis": 300
+        }
+    } 
+]

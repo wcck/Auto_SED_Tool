@@ -3,6 +3,7 @@ from pickle import TRUE
 import sys
 import os
 import logging
+import subprocess
 from telnetlib import SE
 import win32con
 import win32api
@@ -11,6 +12,8 @@ import pydirectinput
 import time
 import json
 import ssl
+import threading
+import checkstatus
 import websocket
 import win32com.client
 from pynput.keyboard import Key, Controller
@@ -267,13 +270,7 @@ def installSecureDocTool() :
     
     # Install SecureDoc_64.exe
     os.startfile(SEDPath)
-    # return True
-    
-    # Press YES by user
-    
-    # Waiting for tool appear
-    # print("Waiting for 80 seconds")
-    # time.sleep(80)
+
 
 def leftClick(left, top, right, bottom, hwnd):
     # Calculate coordinate for event button
@@ -288,21 +285,8 @@ def leftClick(left, top, right, bottom, hwnd):
     pyautogui.click(x, y)  
     print('Left Click')
 
-# def windowList():
-#     """
-#     Windows list
-#     """
-#     def win_enum_callback(hwnd, results):
-#         if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd) != '':
-#             results.append(hwnd)
 
-#     handles = []
-#     win32gui.EnumWindows(win_enum_callback, handles)
-#     # Print all window on system
-#     print('\n'.join(['%d\t%s' % (h, win32gui.GetWindowText(h)) for h in handles]))
-
-
-def windowTopByHandle():
+def windowTopByHandle(target):
     titleHwnd = 0
     def win_enum_callback(hwnd, results):
         if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd) != '':
@@ -312,17 +296,17 @@ def windowTopByHandle():
     win32gui.EnumWindows(win_enum_callback, handles)
 
     for h in handles :
-        if win32gui.GetWindowText(h) == "SecureDoc: Set Device Primary Owner Credentials" :
+        if win32gui.GetWindowText(h) == target :
             print('\n'.join(['%d\t%s' % (h, win32gui.GetWindowText(h)) for h in handles]))
             titleHwnd = h
     print(handles)
     print(titleHwnd)
     
-    # Prevent secureDoc didn't appear
+    # Continue polling util secureDoc jump window
     if titleHwnd == 0 :                
         print("Waiting for 15 seconds")
         time.sleep(15)        
-        windowTopByHandle()    
+        windowTopByHandle(target)    
     else :
         # Set fore ground secureDoc tool
         print("Waiting for 5 seconds")
@@ -339,93 +323,9 @@ def windowTopByHandle():
         # Click left event by mouse
         leftClick(left, top, right, bottom, titleHwnd)
 
-# def moveSecureDocOnTop(titleHwnd) :
-#     # Print all window on system
-#     # windowList()
-
-#     # Setting tool on top
-#     windowTopByHandle() 
-
-# def getHwndForSecureDoc() :
-#     # Get hwnd for SecureDoc x64    
-#     titleHwnd  = win32gui.FindWindow("Qt5QWindowIcon", "SecureDoc: Set Device Primary Owner Credentials")
-#     print(titleHwnd)
-    
-#     # Move Window on top
-#     moveSecureDocOnTop(titleHwnd)
-
-#     # while(True) :
-#     #     end = time.time()
-#     #     titleHwnd  = win32gui.FindWindow("Qt5QWindowIcon", "SecureDoc: Set Device Primary Owner Credentials")
-#     #     print(titleHwnd)
-#     #     print(sys.platform)
-#     #     if titleHwnd != 0 :
-#     #         break
-#     #     elif end > 60 :
-#     #         return False                        
-
-#     # return titleHwnd
-
-#     # Trigger button events
-#     child = []   
-#     def all_ok(hwnd, parm) :
-#         child.append(hwnd)
-#         ClassName = win32gui.GetClassName(hwnd)
-#         title = win32gui.GetWindowText(hwnd)
-#         print("title : %s, class : %s, hwnd : %d" %(title, ClassName, hwnd))
-    
-#     win32gui.EnumChildWindows(titleHwnd, all_ok, None)
-     
-
-def settingPWD() : 
-    # Type pwd -> Tab -> Confirm pwd -> Tab -> Enter
-    keyboard = Controller()
-    # passWordKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9']      
-    # for i in range(len(passWordKeys)) :
-    #     keyboard.press(passWordKeys[i])
-    #     time.sleep(0.2)
-    #     keyboard.release(passWordKeys[i])
-    #     time.sleep(0.2)
-    
-    
-    # Waiting for secureDoc tool appear
-    print("Waiting for 5 secnods")
-    time.sleep(5)    
-
-    passWordKeys = ['1', '2', '3', '4', '5', '6', '7', '8']      
-    for i in range(len(passWordKeys)) :
-        keyboard.press(passWordKeys[i])
-        time.sleep(0.2)
-        keyboard.release(passWordKeys[i])
-        time.sleep(0.2)
-
-
-
-    print("Press tab")
-    keyboard.press(Key.tab)
-    time.sleep(1)
-    keyboard.release(Key.tab)
-    
-    for i in range(len(passWordKeys)) :
-        keyboard.press(passWordKeys[i])
-        time.sleep(0.2)
-        keyboard.release(passWordKeys[i])
-        time.sleep(0.2)
-
-        # keyboard.type("12345678")
-
-    print("Press tab")
-    keyboard.press(Key.tab)
-    time.sleep(1)
-    keyboard.release(Key.tab)
-
-    print("press enter")
-    keyboard.press(Key.enter)
-    time.sleep(1)
-    keyboard.release(Key.enter)
-
 
 def parserJsonFile(filePath):
+    print("*********** Parser start ***********")
     with open(filePath, newline="") as f:         
         # Load json file
         data = json.load(f)
@@ -442,8 +342,11 @@ def parserJsonFile(filePath):
                 print("delay ms is : %d" %(delayMs))
                 delayMsList.append(delayMs)
 
+    print("*********** Parser End ***********")
+    f.close()
 
-def sendCommand(remoteIP):    
+def sendCommand(remoteIP):   
+    print("*********** Send CMD Start ***********") 
     uri = "wss://%s/api/ws?stream=0" %(remoteIP)
     headers = {"X-KVMD-User": "admin", "X-KVMD-Passwd": "admin"}
     ws = websocket.WebSocket(sslopt={"cert_reqs": ssl.CERT_NONE})
@@ -481,85 +384,69 @@ def sendCommand(remoteIP):
             if res == False:
                 print('[ERROR] Cannot connect this Web UI.')
                 sys.exit()
+    
+    # Clear list avoid repeat sending CMD
+    commandList.clear()     
     # Close websocket
     ws.close()
+    print("*********** Send CMD End ***********") 
 
-def issueEventByWebUI(ip) :
-    filePath = r"./secureDocPWD.json"
-    parserJsonFile(filePath)
-    
+def issueEventByWebUI(ip, macro) :    
+    parserJsonFile(macro)    
     sendCommand(ip)
 
+def runColdBoot():
+    # Run cold boot    
+    coldBootPath = os.path.join(os.path.expandvars("%userprofile%"), "Desktop", "Auto_SED_Tool", "coldboot", "coldboot.bat")
+    subprocess.call([coldBootPath])
 
-# Judge sample whether support OPAL feature
-def determineOPAL(resultList, beforeEncrypt, afterEncrypt):
-    # get status val
-    val = resultList[5].split(":")[1].strip()
-    # print(val)
-    # print(resultList[5])
-    if beforeEncrypt == True :
-        if val == "0x0" :
-            print("Support OPAL")
-        else :
-            print("Don't support OPAL")
-            return False
-    elif afterEncrypt == True :
-        if val == "0x6" or val == "0x7" :
-            print("PASS")
-        else :
-            print("FAIL")
-            return False     
+def main() :    
+    # # Check Status for DUT
+    checkstatus.checkStatus(encryptBefore=False, encryptAfter=True)
 
-def getTimestamp():
-    # Setting timeStamp    
-    struct_time = time.localtime()
-     # Transfer string
-    timeString = time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
-    print(timeString)
-    
-    return timeString
-
-def checkStatus(encryptBefore, encryptAfter):
-    # os.system('WMTCGTST_8.6.0.188.exe -i')
-
-    os.system('WMTCGTST_8.6.0.188.exe -i > result.txt')         
-    
-    getTimestamp()
-    f = open("./result.txt", "r")
-    output = f.read()
-    print(output)
-    f.close()
-
-    f = open("./result.txt", "r")
-
-    lines = f.readlines()
-    resultList = lines
-    f.close()
-    
-    if encryptBefore == True:
-        determineOPAL(resultList, beforeEncrypt=True, afterEncrypt=False)
-    elif encryptAfter == True:
-        determineOPAL(resultList, beforeEncrypt=False, afterEncrypt=True)
-
-def main() :
-    ##############################################
-    # res = os.path.join(os.path.expandvars("%userprofile%"),"Desktop")
-    # print(res)
-    ##############################################
-
-    # Check Status for sample
-    checkStatus(encryptBefore=False, encryptAfter=True)
-
-    # Install SecureDoc Tool in Desktop
+    # # Install SecureDoc Tool in Desktop
     installSecureDocTool()        
 
-    # Show tool and Click it
-    windowTopByHandle()    
-    
-    # Issue event by web UI
+    # # Show tool and Click it
+    target = "SecureDoc: Set Device Primary Owner Credentials"
+    windowTopByHandle(target)   
+    # Issue event by web UI i.e. confirm pwd
     remoteIP = "192.168.54.64"
-    issueEventByWebUI(ip = remoteIP)
+    macroPath = r"./macro/secureDocPWD.json"
+    issueEventByWebUI(ip = remoteIP, macro=macroPath)
 
+
+    target = "SecureDoc Disk Encryption"
+    windowTopByHandle(target)   
+    # Issue event by web UI i.e. press tab
+    remoteIP = "192.168.54.64"
+    macroPath = r"./macro/pressTab.json"
+    issueEventByWebUI(ip = remoteIP, macro=macroPath)
+    remoteIP = "192.168.54.64"
+    macroPath = r"./macro/pressEnter.json"
+    issueEventByWebUI(ip = remoteIP, macro=macroPath)
+
+
+    target = "SecureDoc"
+    windowTopByHandle(target)
+    # Issue event by web UI i.e. press enter
+    remoteIP = "192.168.54.64"
+    macroPath = r"./macro/pressEnter.json"
+    issueEventByWebUI(ip = remoteIP, macro=macroPath)
+
+    # Run coldboot.bat 
+    thread_cold_boot = threading.Thread(target=runColdBoot)
+    thread_cold_boot.start()
+
+    time.sleep(6)
+    remoteIP = "192.168.54.64"
+    macroPath = r"./macro/pressTab.json"
+    issueEventByWebUI(ip = remoteIP, macro=macroPath)
+    macroPath = r"./macro/pressTab.json"
+    issueEventByWebUI(ip = remoteIP, macro=macroPath)
+    macroPath = r"./macro/pressEnter.json"
+    issueEventByWebUI(ip = remoteIP, macro=macroPath)
+    
 
 def loggingDemo():
     """Just demo basic usage of logging module
@@ -591,11 +478,9 @@ def initLogging(logFilename):
     logging.getLogger('').addHandler(console);
 
 if __name__ == "__main__" :
-    logFilename = r"./crifan_logging_demo.log"
-    # initLogging(logFilename)
+    logFilename = r"./secureDocHistory.log"
+    initLogging(logFilename)
     # loggingDemo()
     
-    main()
-    with os.popen("call secureDoc.exe > result.log 2 > &1 && type result.log") as p:
-        r = p.read()
+    main()    
     os.system("pause")
