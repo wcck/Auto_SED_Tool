@@ -3,5 +3,5 @@ Automatically execute SecureDoc x64 tool
 
 # Usage
 ```
-python ./secureDoc.py [image path]
+python ./secureDoc.py
 ```
