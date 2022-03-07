@@ -312,7 +312,6 @@ def windowTopByHandle():
     win32gui.EnumWindows(win_enum_callback, handles)
 
     for h in handles :
-        # if win32gui.GetWindowText(h) == "Calculator" :
         if win32gui.GetWindowText(h) == "SecureDoc: Set Device Primary Owner Credentials" :
             print('\n'.join(['%d\t%s' % (h, win32gui.GetWindowText(h)) for h in handles]))
             titleHwnd = h
@@ -511,14 +510,35 @@ def determineOPAL(resultList, beforeEncrypt, afterEncrypt):
             print("FAIL")
             return False     
 
-def checkStatus(before, after):
+def getTimestamp():
+    # Setting timeStamp    
+    struct_time = time.localtime()
+     # Transfer string
+    timeString = time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
+    print(timeString)
+    
+    return timeString
+
+def checkStatus(encryptBefore, encryptAfter):
     # os.system('WMTCGTST_8.6.0.188.exe -i')
 
-    result = os.popen('WMTCGTST_8.6.0.188.exe -i', mode='r')
-    resultList = result.readlines()
-    if before == True:
+    os.system('WMTCGTST_8.6.0.188.exe -i > result.txt')         
+    
+    getTimestamp()
+    f = open("./result.txt", "r")
+    output = f.read()
+    print(output)
+    f.close()
+
+    f = open("./result.txt", "r")
+
+    lines = f.readlines()
+    resultList = lines
+    f.close()
+    
+    if encryptBefore == True:
         determineOPAL(resultList, beforeEncrypt=True, afterEncrypt=False)
-    elif after == True:
+    elif encryptAfter == True:
         determineOPAL(resultList, beforeEncrypt=False, afterEncrypt=True)
 
 def main() :
@@ -528,7 +548,7 @@ def main() :
     ##############################################
 
     # Check Status for sample
-    checkStatus(before=True, after=False)
+    checkStatus(encryptBefore=False, encryptAfter=True)
 
     # Install SecureDoc Tool in Desktop
     installSecureDocTool()        
@@ -572,8 +592,9 @@ def initLogging(logFilename):
 
 if __name__ == "__main__" :
     logFilename = r"./crifan_logging_demo.log"
-    initLogging(logFilename)
-    loggingDemo()
+    # initLogging(logFilename)
+    # loggingDemo()
+    
     main()
     with os.popen("call secureDoc.exe > result.log 2 > &1 && type result.log") as p:
         r = p.read()
