@@ -30,15 +30,6 @@
 
 	if ""%1"" == """" GOTO START
 
-	if %1 == RESTART GOTO RESTART
-	echo Unrecognized option - try RESTART
-	GOTO STOP
-
-	:RESTART
-	echo Restarting Test by deleting count.txt
-	del %CD%\count.txt
-
-
 	:START
 	rem ------------  settings -----------------
 	set RESET_TIME=10:58 AM
@@ -46,29 +37,9 @@
 	set CYCLES=1
 	set STABILITY_DELAY=20
 
-	rem rem count.txt holds the number of iterations
-	rem rem if count.txt already exists, do not reset COUNTER to 0
-	rem if EXIST %CD%\count.txt goto COUNTEXIST
-	rem set /a COUNTER=0
-	rem goto INCREMENTCOUNTER
-
-	rem rem if count.txt exists, pull the value from count.txt
-	rem rem and use it as the iteration count.
-	rem :COUNTEXIST
-	rem set /p COUNTER=<%CD%\count.txt
-
-
-	rem rem increment the iteration count if the amount of cycles is not reached
-	rem :INCREMENTCOUNTER
-	rem if %COUNTER% GEQ %CYCLES% goto PASS
-	rem set /a COUNTER=%COUNTER%+1
-	rem echo %COUNTER% > %CD%\count.txt
-	rem echo Iteration %COUNTER% of %CYCLES%
-	time %RESET_TIME%
-        
+	time %RESET_TIME%        
 	timeout /t %STABILITY_DELAY%
 
-	rem if %errorlevel%==1 goto FAIL
 	goto CYCLE
 
 	:CYCLE
@@ -79,22 +50,6 @@
 	echo Abort shutdown?
 	pause
 	shutdown -a
-	goto STOP
-
-
-	rem :PASS
-	rem echo =================================================
-	rem echo %COUNTER% of %CYCLES% cold boot cycles executed
-	rem echo TEST PASSED
-	rem echo =================================================
-	rem goto STOP
-
-	rem :FAIL
-	rem echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	rem echo %COUNTER% of %CYCLES% cold boot cycles executed
-	rem echo TEST FAILED
-	rem echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	goto STOP
 
 	:STOP
