@@ -5,10 +5,7 @@ import os
 import logging
 import subprocess
 from telnetlib import SE
-import win32con
-import win32api
 import pyautogui
-import pydirectinput
 import time
 import json
 import ssl
@@ -16,7 +13,6 @@ import threading
 import checkstatus
 import websocket
 import win32com.client
-from pynput.keyboard import Key, Controller
 from win32 import win32gui
 from ctypes import *
 
@@ -407,7 +403,7 @@ def main() :
     # # Install SecureDoc Tool in Desktop
     installSecureDocTool()        
 
-    # # Show tool and Click it
+    # Show tool and Click it
     target = "SecureDoc: Set Device Primary Owner Credentials"
     windowTopByHandle(target)   
     # Issue event by web UI i.e. confirm pwd
@@ -415,7 +411,7 @@ def main() :
     macroPath = r"./macro/secureDocPWD.json"
     issueEventByWebUI(ip = remoteIP, macro=macroPath)
 
-
+    # Press Cancel for secureDoc
     target = "SecureDoc Disk Encryption"
     windowTopByHandle(target)   
     # Issue event by web UI i.e. press tab
@@ -426,7 +422,7 @@ def main() :
     macroPath = r"./macro/pressEnter.json"
     issueEventByWebUI(ip = remoteIP, macro=macroPath)
 
-
+    # Press OK
     target = "SecureDoc"
     windowTopByHandle(target)
     # Issue event by web UI i.e. press enter
@@ -437,7 +433,6 @@ def main() :
     # Run coldboot.bat 
     thread_cold_boot = threading.Thread(target=runColdBoot)
     thread_cold_boot.start()
-
     time.sleep(6)
     remoteIP = "192.168.54.64"
     macroPath = r"./macro/pressTab.json"
