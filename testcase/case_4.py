@@ -1,4 +1,4 @@
-from common_API import checkstatus, searchwindowtitle, issucmdbywebsocket
+from common_API import checkstatus, searchwindowtitle, issucmdbywebsocket, connectdb
 import threading
 import time
 import os
@@ -49,6 +49,9 @@ def RunCase4():
 
     # Press Cancel for secureDoc
     target = "SecureDoc Disk Encryption"
+    
+    # Connect DB
+    connectRes = connectdb.connectDB()    
     searchwindowtitle.searchWindowTitle(target)    
     # Issue event by web UI i.e. press tab
 
@@ -64,6 +67,11 @@ def RunCase4():
     macroPath = r"./macro/pressEnter.json"
     issucmdbywebsocket.issueEventByWebSocket(ip = remoteIP, macro=macroPath)
 
+    # Update table
+    targetTable = u'John_Test'
+    id = 1
+    connectdb.updatePreShutdownData(connectRes, targetTable, id, val=1)
+
     # Run coldboot.bat 
     thread_cold_boot = threading.Thread(target=runColdBoot)
     thread_cold_boot.start()
@@ -74,3 +82,7 @@ def RunCase4():
     issucmdbywebsocket.issueEventByWebSocket(ip = remoteIP, macro=macroPath)
     macroPath = r"./macro/pressEnter.json"
     issucmdbywebsocket.issueEventByWebSocket(ip = remoteIP, macro=macroPath)
+
+
+if __name__ == "__main__" :
+    RunCase4()
