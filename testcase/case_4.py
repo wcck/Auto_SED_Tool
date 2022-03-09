@@ -34,8 +34,9 @@ def runColdBoot():
 
 def RunCase4():
     # # Check Status for DUT
-    checkstatus.checkStatus(encryptBefore=False, encryptAfter=True)
-
+    res = checkstatus.checkStatus(encryptBefore=False, encryptAfter=True)
+	if not res:
+        return False
     # # Install SecureDoc Tool in Desktop
     installSecureDocTool()        
 
@@ -48,13 +49,9 @@ def RunCase4():
     issucmdbywebsocket.issueEventByWebSocket(ip = remoteIP, macro=macroPath)
 
     # Press Cancel for secureDoc
-    target = "SecureDoc Disk Encryption"
-    
-    # Connect DB
-    connectRes = connectdb.connectDB()    
+    target = "SecureDoc Disk Encryption"    
     searchwindowtitle.searchWindowTitle(target)    
     # Issue event by web UI i.e. press tab
-
     macroPath = r"./macro/pressTab.json"
     issucmdbywebsocket.issueEventByWebSocket(ip = remoteIP, macro=macroPath)
     macroPath = r"./macro/pressEnter.json"
@@ -67,7 +64,8 @@ def RunCase4():
     macroPath = r"./macro/pressEnter.json"
     issucmdbywebsocket.issueEventByWebSocket(ip = remoteIP, macro=macroPath)
 
-    # Update table
+    # Connect DB and update table
+    connectRes = connectdb.connectDB()
     targetTable = u'John_Test'
     id = 1
     val = 1

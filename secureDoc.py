@@ -10,7 +10,7 @@ import time
 import json
 import ssl
 import threading
-import checkstatus
+from common_API import checkstatus
 import websocket
 import win32com.client
 from win32 import win32gui
@@ -415,10 +415,8 @@ def main() :
     target = "SecureDoc Disk Encryption"
     windowTopByHandle(target)   
     # Issue event by web UI i.e. press tab
-    remoteIP = "192.168.54.64"
     macroPath = r"./macro/pressTab.json"
     issueEventByWebUI(ip = remoteIP, macro=macroPath)
-    remoteIP = "192.168.54.64"
     macroPath = r"./macro/pressEnter.json"
     issueEventByWebUI(ip = remoteIP, macro=macroPath)
 
@@ -426,7 +424,6 @@ def main() :
     target = "SecureDoc"
     windowTopByHandle(target)
     # Issue event by web UI i.e. press enter
-    remoteIP = "192.168.54.64"
     macroPath = r"./macro/pressEnter.json"
     issueEventByWebUI(ip = remoteIP, macro=macroPath)
 
@@ -434,7 +431,6 @@ def main() :
     thread_cold_boot = threading.Thread(target=runColdBoot)
     thread_cold_boot.start()
     time.sleep(6)
-    remoteIP = "192.168.54.64"
     macroPath = r"./macro/pressTab.json"
     issueEventByWebUI(ip = remoteIP, macro=macroPath)
     macroPath = r"./macro/pressTab.json"

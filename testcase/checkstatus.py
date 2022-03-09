@@ -18,6 +18,7 @@ def determineOPAL(resultList, beforeEncrypt, afterEncrypt):
     if beforeEncrypt == True :
         if val == "0x0" :
             print("Support OPAL")
+            return True
         else :
             print("Don't support OPAL")
             return False
@@ -26,6 +27,7 @@ def determineOPAL(resultList, beforeEncrypt, afterEncrypt):
             print("PASS")
             res = "PASS"
             # saveTxt(res)
+            return True
         else :
             print("FAIL")
             res = "FAIL"
@@ -57,8 +59,10 @@ def checkStatus(encryptBefore, encryptAfter):
     f.close()
     
     if encryptBefore == True:
-        determineOPAL(resultList, beforeEncrypt=True, afterEncrypt=False)
+        res = determineOPAL(resultList, beforeEncrypt=True, afterEncrypt=False)
+        return res
     elif encryptAfter == True:
-        determineOPAL(resultList, beforeEncrypt=False, afterEncrypt=True)
+        res = determineOPAL(resultList, beforeEncrypt=False, afterEncrypt=True)
+        return res
 
   
