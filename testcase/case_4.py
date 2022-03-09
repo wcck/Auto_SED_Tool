@@ -70,7 +70,8 @@ def RunCase4():
     # Update table
     targetTable = u'John_Test'
     id = 1
-    connectdb.updatePreShutdownData(connectRes, targetTable, id, val=1)
+    val = 1
+    connectdb.updatePreShutdownData(connectRes, targetTable, val, id)
 
     # Run coldboot.bat 
     thread_cold_boot = threading.Thread(target=runColdBoot)

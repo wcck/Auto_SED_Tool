@@ -26,24 +26,11 @@ def deleteData(connectRes, targetTable, deleteItem, val):
     # Commit the transaction
     connectRes.commit()
 
-def updatePreShutdownData(connectRes, targetTable, val, id):
+def updatePreShutdownData(connectRes, targetTable, id, val):
     cursor = connectRes.cursor()
 
     # Update
     updateSQLCMD = "UPDATE {0} SET PrepareShutdown = {1} WHERE UID = {2}".format(targetTable, val, id)
-    cursor.execute(updateSQLCMD)
-
-    # Commit the transaction
-    connectRes.commit()
-
-def updateTestingResultData(connectRes, targetTable, val, id):
-    cursor = connectRes.cursor()
-
-    # Update
-    if val == 'PASS' :
-        updateSQLCMD = "UPDATE {0} SET TestingResult = 'PASS' WHERE UID = {1}".format(targetTable, id)
-    else :
-        updateSQLCMD = "UPDATE {0} SET TestingResult = 'FAIL' WHERE UID = {1}".format(targetTable, id)
     cursor.execute(updateSQLCMD)
 
     # Commit the transaction
