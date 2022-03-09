@@ -47,8 +47,10 @@ def getPreShutdownData(connectRes):
     # print(result)
     if result == None:
         print("Didn't prepare shutdown.")
+        return False
     else:
         print("Do prepare shutdown.")
+        return True
 
 def searchTable(connectRes, target):
     cursor = connectRes.cursor()
