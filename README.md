@@ -3,5 +3,6 @@ Automatically execute SecureDoc x64 tool
 
 # Usage
 ```
-python ./secureDoc.py
+cd testcase
+python [You want to execure which test case].py
 ```
