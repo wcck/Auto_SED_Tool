@@ -14,7 +14,7 @@ def leftClickForegroundWindow(left, top, right, bottom, hwnd):
     # Calculate coordinate for event button
     x = int(left+(right-left)/2)
     y = int(top+(bottom-top)/2)         
-    print("Coordinate(%d, %d)" %(x, y))
+    # print("Coordinate(%d, %d)" %(x, y))
     
     # Move to specific coordinate by mouse
     pyautogui.moveTo(x, y)  
@@ -23,7 +23,7 @@ def leftClickForegroundWindow(left, top, right, bottom, hwnd):
     pyautogui.click(x, y)  
     print('Left Click')
 
-def searchWindowTitle(target):
+def searchWindowTitle(target, delayTime):
     titleHwnd = 0
     def win_enum_callback(hwnd, results):
         if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd) != '':
@@ -34,28 +34,28 @@ def searchWindowTitle(target):
 
     for h in handles :
         if win32gui.GetWindowText(h) == target :
-            print('\n'.join(['%d\t%s' % (h, win32gui.GetWindowText(h)) for h in handles]))
+            # print('\n'.join(['%d\t%s' % (h, win32gui.GetWindowText(h)) for h in handles]))
             titleHwnd = h
-    print(handles)
-    print(titleHwnd)
+    # print(handles)
+    # print(titleHwnd)
     
     # Continue polling util secureDoc jump window
     if titleHwnd == 0 :                
-        print("Waiting for 15 seconds")
+        # print("Waiting for %d seconds"%delayTime)
         time.sleep(15)        
-        searchWindowTitle(target)    
+        searchWindowTitle(target, delayTime)    
     else :
         # Set fore ground secureDoc tool
-        print("Waiting for 5 seconds")
-        time.sleep(5)
+        print("Waiting for 3 seconds")
+        time.sleep(3)
         shell = win32com.client.Dispatch("WScript.Shell")
         shell.SendKeys('%')
-        print(titleHwnd)
+        # print(titleHwnd)
         win32gui.SetForegroundWindow(titleHwnd)
         
         # Click title to confirm in tool
         left, top, right, bottom = win32gui.GetWindowRect(titleHwnd)
-        print(left, top, right, bottom)
+        # print(left, top, right, bottom)
         
         # Click left event by mouse
         leftClickForegroundWindow(left, top, right, bottom, titleHwnd)
